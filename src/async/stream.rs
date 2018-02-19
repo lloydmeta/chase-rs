@@ -31,16 +31,16 @@ impl Chaser {
     /// let chaser = Chaser::new(&file_path);
     ///
     /// let mut file_write = OpenOptions::new()
-    /// .write(true)
-    /// .append(true)
-    /// .create(true)
-    /// .open(&file_path)
-    /// .unwrap();
-    ///
-    /// let (stream, _) = chaser.run_stream().unwrap();
+    ///   .write(true)
+    ///   .append(true)
+    ///   .create(true)
+    ///   .open(&file_path)
+    ///   .unwrap();
     ///
     /// write!(file_write, "Hello, world 1\n").unwrap();
     /// write!(file_write, "Hello, world 2\n").unwrap();
+    ///
+    /// let (stream, _) = chaser.run_stream().unwrap();
     ///
     /// let accumulated = stream
     /// .take(3) // we'll add another one after this is declared to show things are really async
@@ -86,6 +86,8 @@ mod tests {
     use std::io::Write;
     use futures::{Future, Stream};
     use futures::future;
+    use std::thread::sleep;
+    use std::time::duration::Duration;
 
     use std::fs::{rename, OpenOptions};
 
@@ -103,16 +105,20 @@ mod tests {
             .unwrap();
 
         let (stream, _) = chaser.run_stream().unwrap();
+
+        write!(file_write, "Hello, world 1\n").unwrap();
+        write!(file_write, "Hello, world 2\n").unwrap();
+        write!(file_write, "Hello, world 3\n").unwrap();
+
         let accumulated = stream
-            .take(4) // We'll add entries and rotate afterwards
+            .take(4) // We'll add another entry and rotate afterwards
             .fold(String::new(), |mut acc, (line, _, _)| {
                 acc.push_str(&line);
                 future::ok(acc)
             });
 
-        write!(file_write, "Hello, world 1\n").unwrap();
-        write!(file_write, "Hello, world 2\n").unwrap();
-        write!(file_write, "Hello, world 3\n").unwrap();
+        // A slight pause so we can be sure the Stream has started in the other thread
+        sleep(Duration::from_millis(250));
 
         // rotation
         let mut file_write_new = {
