@@ -37,10 +37,10 @@ impl Chaser {
     /// .open(&file_path)
     /// .unwrap();
     ///
+    /// let (stream, _) = chaser.run_stream().unwrap();
+    ///
     /// write!(file_write, "Hello, world 1\n").unwrap();
     /// write!(file_write, "Hello, world 2\n").unwrap();
-    ///
-    /// let (stream, _) = chaser.run_stream().unwrap();
     ///
     /// let accumulated = stream
     /// .take(3) // we'll add another one after this is declared to show things are really async
@@ -101,10 +101,11 @@ mod tests {
             .open(&file_path)
             .unwrap();
 
+        let (stream, _) = chaser.run_stream().unwrap();
+
         write!(file_write, "Hello, world 1\n").unwrap();
         write!(file_write, "Hello, world 2\n").unwrap();
 
-        let (stream, _) = chaser.run_stream().unwrap();
 
         let accumulated = stream
             .take(4) // We'll add another entry and rotate afterwards
