@@ -11,8 +11,50 @@ use std::thread::{Builder, JoinHandle};
 use errors::ChaseError;
 
 impl Chaser {
+
     /// Consumes the given chaser and gives you back a standard lib Channel to read
     /// from
+    ///
+    /// ```
+    /// # extern crate chase;
+    /// # extern crate tempdir;
+    /// # use chase::*;
+    /// # use tempdir::*;
+    /// # use std::io::Write;
+    /// # use std::fs::OpenOptions;
+    /// # fn main () {
+    /// let temp_dir = TempDir::new("chase-test").unwrap();
+    /// let file_path = temp_dir.path().join("test.log");
+    /// let chaser = Chaser::new(&file_path);
+    ///
+    /// let mut file_write = OpenOptions::new()
+    /// .write(true)
+    /// .append(true)
+    /// .create(true)
+    /// .open(&file_path)
+    /// .unwrap();
+    ///
+    /// write!(file_write, "Hello, world 1\n").unwrap();
+    /// write!(file_write, "Hello, world 2\n").unwrap();
+    ///
+    /// let mut seen = String::new();
+    ///
+    /// let (receiver, _) = chaser.run_channel().unwrap();
+    ///
+    /// seen.push_str(&receiver.recv().unwrap().0);
+    /// seen.push_str(&receiver.recv().unwrap().0);
+    ///
+    /// assert_eq!(seen.as_str(), "Hello, world 1Hello, world 2");
+    ///
+    /// write!(file_write, "Hello, world 3\n").unwrap();
+    /// seen.push_str(&receiver.recv().unwrap().0);
+    /// assert_eq!(seen.as_str(), "Hello, world 1Hello, world 2Hello, world 3");
+    ///
+    /// drop(receiver);
+    /// drop(file_write);
+    /// temp_dir.close().unwrap();
+    /// # }
+    /// ```
     pub fn run_channel(
         self,
     ) -> Result<(Receiver<SendData>, JoinHandle<Result<(), ChaseError>>), ChaseError> {
