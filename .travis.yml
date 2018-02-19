@@ -10,4 +10,4 @@ cache: cargo
 
 script:
  - cargo build --features=stream,with-serde,binary
- - cargo test --features=stream,with-serde
+ - cargo test --features=stream,with-serde -- --nocapture

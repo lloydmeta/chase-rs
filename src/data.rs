@@ -7,7 +7,7 @@ use std::time::Duration;
 use std::path::PathBuf;
 
 pub const DEFAULT_ROTATION_CHECK_WAIT_MILLIS: u64 = 100;
-pub const DEFAULT_NOT_ROTATED_WAIT_MILLIS: u64 = 100;
+pub const DEFAULT_NOT_ROTATED_WAIT_MILLIS: u64 = 50;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, PartialOrd)]
 #[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]

@@ -27,11 +27,11 @@ impl Chaser {
     /// let chaser = Chaser::new(&file_path);
     ///
     /// let mut file_write = OpenOptions::new()
-    /// .write(true)
-    /// .append(true)
-    /// .create(true)
-    /// .open(&file_path)
-    /// .unwrap();
+    ///   .write(true)
+    ///   .append(true)
+    ///   .create(true)
+    ///   .open(&file_path)
+    ///   .unwrap();
     ///
     /// write!(file_write, "Hello, world 1\n").unwrap();
     /// write!(file_write, "Hello, world 2\n").unwrap();
