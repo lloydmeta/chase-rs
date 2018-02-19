@@ -68,6 +68,7 @@ impl Chaser {
             .name(thread_namer(&self.path))
             .spawn(move || {
                 self.run(|line, num, pos| {
+                    println!("Got line {}", line);
                     let next_tx = tx.clone().send((line.to_string(), num, pos)).wait()?;
                     tx = next_tx;
                     Ok(())
@@ -102,18 +103,15 @@ mod tests {
             .unwrap();
 
         let (stream, _) = chaser.run_stream().unwrap();
-
-        write!(file_write, "Hello, world 1\n").unwrap();
-        write!(file_write, "Hello, world 2\n").unwrap();
-
-
         let accumulated = stream
-            .take(4) // We'll add another entry and rotate afterwards
+            .take(4) // We'll add entries and rotate afterwards
             .fold(String::new(), |mut acc, (line, _, _)| {
                 acc.push_str(&line);
                 future::ok(acc)
             });
 
+        write!(file_write, "Hello, world 1\n").unwrap();
+        write!(file_write, "Hello, world 2\n").unwrap();
         write!(file_write, "Hello, world 3\n").unwrap();
 
         // rotation
