@@ -1,0 +1,9 @@
+language: rust
+
+sudo: false
+
+rust:
+  - stable
+  - nightly
+
+cache: cargo
