@@ -68,7 +68,6 @@ impl Chaser {
             .name(thread_namer(&self.path))
             .spawn(move || {
                 self.run(|line, num, pos| {
-                    println!("Got line {}", line);
                     let next_tx = tx.clone().send((line.to_string(), num, pos)).wait()?;
                     tx = next_tx;
                     Ok(())
