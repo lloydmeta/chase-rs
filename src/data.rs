@@ -1,3 +1,5 @@
+//! Holds various data structures used for chasing files
+
 use std::io::BufReader;
 use std::fs::File;
 use std::time::Duration;
@@ -17,6 +19,7 @@ pub struct Pos(pub u64);
 #[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub(crate) struct FileId(pub(crate) u64);
 
+/// Your entry point for chasing a file.
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub struct Chaser {
@@ -38,6 +41,8 @@ pub(crate) struct Chasing<'a> {
 }
 
 impl Chaser {
+
+    /// Creates a new Chaser
     pub fn new(path: &str) -> Chaser {
         Chaser {
             line: Line(0),
