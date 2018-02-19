@@ -24,6 +24,23 @@ keep that in mind when adding as a dependency (refer to `Cargo.toml` for list of
 #### As a binary
 
 `cargo install chase --features=binary`
+
+```shell
+Chases a file through thick and thin.
+
+USAGE:
+    chase [OPTIONS] <f>
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -L, --line <l>    The line you want to start chasing your file from [default: 0]
+
+ARGS:
+    <f>    The file you want to chase
+```
   
 ### Caveats
 

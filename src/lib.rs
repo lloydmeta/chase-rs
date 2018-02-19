@@ -21,7 +21,7 @@
 //! # use std::io::Write;
 //! # use std::fs::OpenOptions;
 //! # fn main () {
-//! let temp_dir = TempDir::new("chase-test").unwrap();
+//! let temp_dir = TempDir::new("chase-test-lib").unwrap();
 //! let file_path = temp_dir.path().join("test.log");
 //! let chaser = Chaser::new(&file_path);
 //!

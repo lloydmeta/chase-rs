@@ -11,7 +11,6 @@ use std::thread::{Builder, JoinHandle};
 use errors::ChaseError;
 
 impl Chaser {
-
     /// Consumes the given chaser and gives you back a standard lib Channel to read
     /// from
     ///
@@ -23,7 +22,7 @@ impl Chaser {
     /// # use std::io::Write;
     /// # use std::fs::OpenOptions;
     /// # fn main () {
-    /// let temp_dir = TempDir::new("chase-test").unwrap();
+    /// let temp_dir = TempDir::new("chase-test-channel-docs").unwrap();
     /// let file_path = temp_dir.path().join("test.log");
     /// let chaser = Chaser::new(&file_path);
     ///
@@ -76,11 +75,11 @@ mod tests {
     use tempdir::*;
     use std::io::Write;
 
-    use std::fs::OpenOptions;
+    use std::fs::{rename, OpenOptions};
 
     #[test]
     fn run_channel_test() {
-        let temp_dir = TempDir::new("chase-test").unwrap();
+        let temp_dir = TempDir::new("chase-test-channel").unwrap();
         let file_path = temp_dir.path().join("test.log");
         let chaser = Chaser::new(&file_path);
 
@@ -106,6 +105,24 @@ mod tests {
         write!(file_write, "Hello, world 3\n").unwrap();
         seen.push_str(&receiver.recv().unwrap().0);
         assert_eq!(seen.as_str(), "Hello, world 1Hello, world 2Hello, world 3");
+
+        // rotation
+        let mut file_write_new = {
+            rename(&file_path, temp_dir.path().join("test.log.bk")).unwrap();
+            OpenOptions::new()
+                .write(true)
+                .append(true)
+                .create(true)
+                .open(&file_path)
+                .unwrap()
+        };
+        write!(file_write_new, "Hello, world 4\n").unwrap();
+
+        seen.push_str(&receiver.recv().unwrap().0);
+        assert_eq!(
+            seen.as_str(),
+            "Hello, world 1Hello, world 2Hello, world 3Hello, world 4"
+        );
 
         drop(receiver);
         drop(file_write);

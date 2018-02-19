@@ -12,7 +12,6 @@ use futures::sync::mpsc::*;
 use errors::ChaseError;
 
 impl Chaser {
-
     /// Consume the given Chaser and returns a Stream from which you can
     /// read attempts to read lines from the file
     ///
@@ -27,7 +26,7 @@ impl Chaser {
     /// # use futures::{Future, Stream};
     /// # use futures::future;
     /// # fn main () {
-    /// let temp_dir = TempDir::new("chase-test").unwrap();
+    /// let temp_dir = TempDir::new("chase-test-stream-docs").unwrap();
     /// let file_path = temp_dir.path().join("test.log");
     /// let chaser = Chaser::new(&file_path);
     ///
@@ -87,11 +86,11 @@ mod tests {
     use futures::{Future, Stream};
     use futures::future;
 
-    use std::fs::OpenOptions;
+    use std::fs::{rename, OpenOptions};
 
     #[test]
     fn run_stream_test() {
-        let temp_dir = TempDir::new("chase-test").unwrap();
+        let temp_dir = TempDir::new("chase-test-stream").unwrap();
         let file_path = temp_dir.path().join("test.log");
         let chaser = Chaser::new(&file_path);
 
@@ -108,16 +107,29 @@ mod tests {
         let (stream, _) = chaser.run_stream().unwrap();
 
         let accumulated = stream
-            .take(3) // we'll add another one after this is declared to show things are really async
+            .take(4) // We'll add another entry and rotate afterwards
             .fold(String::new(), |mut acc, (line, _, _)| {
                 acc.push_str(&line);
                 future::ok(acc)
             });
 
         write!(file_write, "Hello, world 3\n").unwrap();
+
+        // rotation
+        let mut file_write_new = {
+            rename(&file_path, temp_dir.path().join("test.log.bk")).unwrap();
+            OpenOptions::new()
+                .write(true)
+                .append(true)
+                .create(true)
+                .open(&file_path)
+                .unwrap()
+        };
+        write!(file_write_new, "Hello, world 4\n").unwrap();
+
         assert_eq!(
             accumulated.wait(),
-            Ok("Hello, world 1Hello, world 2Hello, world 3".to_string())
+            Ok("Hello, world 1Hello, world 2Hello, world 3Hello, world 4".to_string())
         );
 
         drop(file_write);
