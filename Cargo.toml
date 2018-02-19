@@ -1,6 +1,6 @@
 [package]
 name = "chase"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["lloydmeta <lloydmeta@gmail.com>"]
 license = "MIT"
 description = """

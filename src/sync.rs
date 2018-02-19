@@ -8,11 +8,8 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::thread::sleep;
 
-#[cfg(any(target_os = "redox", unix))]
+#[cfg(unix)]
 use std::os::unix::fs::MetadataExt;
-
-#[cfg(any(target_os = "linux", target_os = "l4re"))]
-use std::os::linux::fs::MetadataExt;
 
 impl Chaser {
 
@@ -132,16 +129,10 @@ fn check_rotation_status(running: &mut Chasing) -> Result<RotationStatus, io::Er
     }
 }
 
-#[cfg(any(target_os = "redox", unix))]
+#[cfg(unix)]
 fn get_file_id(file: &File) -> Result<FileId, io::Error> {
     let meta = file.metadata()?;
     Ok(FileId(meta.ino()))
-}
-
-#[cfg(any(target_os = "linux", target_os = "l4re"))]
-fn get_file_id(file: &File) -> Result<FileId, io::Error> {
-    let meta = file.metadata()?;
-    Ok(FileId(meta.st_ino()))
 }
 
 enum RotationStatus {
