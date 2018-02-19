@@ -87,7 +87,7 @@ mod tests {
     use futures::{Future, Stream};
     use futures::future;
     use std::thread::sleep;
-    use std::time::duration::Duration;
+    use std::time::Duration;
 
     use std::fs::{rename, OpenOptions};
 
