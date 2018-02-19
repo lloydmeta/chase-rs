@@ -8,15 +8,18 @@
 //!   * File rotations
 //!   * Sync and async modes (incl. support for Future Streams)
 //!
-#[cfg(feature="stream")]
+#[cfg(feature = "stream")]
 extern crate futures;
+
+#[cfg(test)]
+extern crate tempdir;
 
 mod data;
 mod sync;
 mod async;
 mod errors;
 
-#[cfg(feature="with-serde")]
+#[cfg(feature = "with-serde")]
 #[cfg_attr(feature = "with-serde", macro_use)]
 extern crate serde_derive;
 

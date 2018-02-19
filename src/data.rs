@@ -4,6 +4,8 @@ use std::io::BufReader;
 use std::fs::File;
 use std::time::Duration;
 
+use std::path::PathBuf;
+
 pub const DEFAULT_ROTATION_CHECK_WAIT_MILLIS: u64 = 100;
 pub const DEFAULT_NOT_ROTATED_WAIT_MILLIS: u64 = 100;
 
@@ -24,7 +26,7 @@ pub(crate) struct FileId(pub(crate) u64);
 #[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub struct Chaser {
     pub(crate) line: Line,
-    pub(crate) path: String,
+    pub(crate) path: PathBuf,
     pub(crate) rotation_check_wait: Duration,
     pub(crate) rotation_check_attempts: Option<usize>,
     pub(crate) not_rotated_wait: Duration,
@@ -41,24 +43,29 @@ pub(crate) struct Chasing<'a> {
 }
 
 impl Chaser {
-
     /// Creates a new Chaser
-    pub fn new(path: &str) -> Chaser {
+    pub fn new<S>(path: S) -> Chaser
+    where
+        S: Into<PathBuf>,
+    {
         Chaser {
             line: Line(0),
-            path: path.to_string(),
+            path: path.into(),
             rotation_check_attempts: None,
             rotation_check_wait: Duration::from_millis(DEFAULT_ROTATION_CHECK_WAIT_MILLIS),
             not_rotated_wait: Duration::from_millis(DEFAULT_NOT_ROTATED_WAIT_MILLIS),
         }
     }
 
-    pub fn set_path(&mut self, path: &str) -> () {
-        self.path = path.to_string();
+    pub fn set_path<S>(&mut self, path: &str) -> ()
+    where
+        S: Into<PathBuf>,
+    {
+        self.path = path.into();
     }
 
-    pub fn get_path(&self) -> &str {
-        self.path.as_ref()
+    pub fn get_path(&self) -> &PathBuf {
+        &self.path
     }
 
     pub fn get_line(&self) -> Line {

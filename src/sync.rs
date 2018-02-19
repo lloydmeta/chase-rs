@@ -12,7 +12,6 @@ use std::thread::sleep;
 use std::os::unix::fs::MetadataExt;
 
 impl Chaser {
-
     /// Start chasing a file synchronously.
     ///
     /// The provided callback function will be invoked whenever a line
