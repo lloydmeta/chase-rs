@@ -1,7 +1,8 @@
 //! Holds logic for tailing a file asynchronously using standard
 //! channels from the standard lib.
 
-use super::super::data::*;
+use data::*;
+use control::*;
 
 use super::{thread_namer, SendData};
 
@@ -62,7 +63,10 @@ impl Chaser {
             .name(thread_namer(&self.path))
             .spawn(move || {
                 let mut moved_chaser = self;
-                moved_chaser.run(|line, num, pos| Ok(tx.send((line.to_string(), num, pos))?))?;
+                moved_chaser.run(|line, num, pos| {
+                    tx.send((line.to_string(), num, pos))?;
+                    Ok(Control::Continue)
+                })?;
                 Ok(())
             })?;
         Ok((rx, join_handle))
