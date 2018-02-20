@@ -16,6 +16,7 @@ pub enum ChaseError {
     IoError(io::Error),
     ChannelSendError(channel_mpsc::SendError<SendData>),
     #[cfg(feature = "stream")] StreamSendError(stream_mpsc::SendError<SendData>),
+    Custom(Box<Error + Send + Sync>),
 }
 
 impl fmt::Display for ChaseError {
@@ -26,6 +27,7 @@ impl fmt::Display for ChaseError {
             &ChannelSendError(ref e) => write!(f, "{}", e),
             #[cfg(feature = "stream")]
             &StreamSendError(ref e) => write!(f, "{}", e),
+            &Custom(ref e) => e.fmt(f),
         }
     }
 }
@@ -38,6 +40,7 @@ impl Error for ChaseError {
             &ChannelSendError(ref e) => e.description(),
             #[cfg(feature = "stream")]
             &StreamSendError(ref e) => e.description(),
+            &Custom(ref e) => e.description(),
         }
     }
 
@@ -48,6 +51,7 @@ impl Error for ChaseError {
             &ChannelSendError(ref e) => Some(e),
             #[cfg(feature = "stream")]
             &StreamSendError(ref e) => Some(e),
+            &Custom(ref e) => e.cause(),
         }
     }
 }

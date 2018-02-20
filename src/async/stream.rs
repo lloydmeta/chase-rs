@@ -2,6 +2,7 @@
 //! taken into consideration.
 
 use data::*;
+use control::*;
 
 use super::{thread_namer, SendData};
 
@@ -70,7 +71,7 @@ impl Chaser {
                 self.run(|line, num, pos| {
                     let next_tx = tx.clone().send((line.to_string(), num, pos)).wait()?;
                     tx = next_tx;
-                    Ok(())
+                    Ok(Control::Continue)
                 })?;
                 Ok(())
             })?;

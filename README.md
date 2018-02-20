@@ -4,7 +4,9 @@ An implementation of async and sync file-tailing in Rust for people who care abo
 
 ### Goals
 
-- Returns line numbers with each line yielded
+- Provide line numbers with each line yielded
+- Ability to exit the watch loop programmatically
+- Deals with file rotations automatically
 - Cross-platform async 
 - Configurable (which line to start on, delays and retries)
 - Easy to use synchronously

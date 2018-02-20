@@ -55,7 +55,10 @@ fn inner_main() -> Result<(), Box<Error>> {
             if let Some(start_line) = maybe_line {
                 chaser.set_line(Line(start_line.parse()?))
             }
-            chaser.run(|l, _, _| Ok(println!("{}", l)))?;
+            chaser.run(|l, _, _| {
+                println!("{}", l);
+                Ok(Control::Continue)
+            })?;
             Ok(())
         }
         _ => Ok(app_clone.print_help()?),
