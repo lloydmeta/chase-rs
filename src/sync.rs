@@ -215,7 +215,7 @@ mod tests {
     use std::fs::OpenOptions;
 
     #[test]
-    fn try_test() {
+    fn try_until_test() {
         let result_0: Result<i32, ()> = try_until(|| Ok(1), None, None);
         assert_eq!(result_0, Ok(1));
         let result_1: Result<i32, ()> = try_until(|| Ok(1), Some(1), None);
