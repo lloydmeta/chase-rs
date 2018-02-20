@@ -25,13 +25,25 @@ pub(crate) struct FileId(pub(crate) u64);
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub struct Chaser {
-    pub(crate) line: Line,
-    pub(crate) path: PathBuf,
-    pub(crate) initial_no_file_wait: Duration,
-    pub(crate) initial_no_file_attempts: Option<usize>,
-    pub(crate) rotation_check_wait: Duration,
-    pub(crate) rotation_check_attempts: Option<usize>,
-    pub(crate) not_rotated_wait: Duration,
+    /// Line to start chasing from
+    pub line: Line,
+    /// Path of the file you want to chase
+    pub path: PathBuf,
+    /// When we start running and there is no file and/or file info to be read, how long to
+    /// wait before retrying
+    pub initial_no_file_wait: Duration,
+    /// When we start running and there is no file and/or file info to be read, how many
+    /// times to keep trying. None means no limit.
+    pub initial_no_file_attempts: Option<usize>,
+    /// When we trying to detect a file rotation  and there is no file and/or file info to be
+    /// read, how long to wait before retrying
+    pub rotation_check_wait: Duration,
+    /// When we trying to detect a file rotation  and there is no file and/or file info to be
+    /// read, how many times to keep trying. None means no limit.
+    pub rotation_check_attempts: Option<usize>,
+    /// After we read a file to its end, how long to wait before trying to read the next line
+    /// again.
+    pub not_rotated_wait: Duration,
 }
 
 #[derive(Debug)]
@@ -45,7 +57,7 @@ pub(crate) struct Chasing<'a> {
 }
 
 impl Chaser {
-    /// Creates a new Chaser
+    /// Creates a new Chaser with default options
     pub fn new<S>(path: S) -> Chaser
     where
         S: Into<PathBuf>,
@@ -59,55 +71,5 @@ impl Chaser {
             rotation_check_wait: Duration::from_millis(DEFAULT_ROTATION_CHECK_WAIT_MILLIS),
             not_rotated_wait: Duration::from_millis(DEFAULT_NOT_ROTATED_WAIT_MILLIS),
         }
-    }
-
-    pub fn set_path<S>(&mut self, path: &str) -> ()
-    where
-        S: Into<PathBuf>,
-    {
-        self.path = path.into();
-    }
-
-    pub fn get_path(&self) -> &PathBuf {
-        &self.path
-    }
-
-    pub fn get_line(&self) -> Line {
-        self.line
-    }
-
-    pub fn set_line(&mut self, line: Line) -> () {
-        self.line = line;
-    }
-
-    pub fn get_initial_no_file_wait(&self) -> &Duration {
-        &self.initial_no_file_wait
-    }
-
-    pub fn set_initial_no_file_wait(&mut self, duration: Duration) -> () {
-        self.initial_no_file_wait = duration;
-    }
-
-    pub fn get_rotation_check_wait(&self) -> Duration {
-        self.rotation_check_wait
-    }
-
-    pub fn set_rotation_check_wait(&mut self, duration: Duration) -> () {
-        self.rotation_check_wait = duration;
-    }
-    pub fn get_not_rotated_wait(&self) -> Duration {
-        self.not_rotated_wait
-    }
-
-    pub fn set_not_rotated_wait(&mut self, duration: Duration) -> () {
-        self.not_rotated_wait = duration;
-    }
-
-    pub fn get_rotation_check_attempts(&self) -> Option<usize> {
-        self.rotation_check_attempts
-    }
-
-    pub fn set_rotation_check_attempts(&mut self, attempts: Option<usize>) -> () {
-        self.rotation_check_attempts = attempts;
     }
 }

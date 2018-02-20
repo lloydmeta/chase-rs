@@ -63,12 +63,19 @@ impl Chaser {
     where
         F: FnMut(&str, Line, Pos) -> Result<Control, ChaseError>,
     {
-        let file = {
+        let (file, file_id) = {
             let attempts = self.initial_no_file_attempts;
             let wait = self.initial_no_file_wait;
-            try_until(|| File::open(&self.path), attempts, Some(wait))?
+            try_until::<_, ChaseError, _>(
+                || {
+                    let file = File::open(&self.path)?;
+                    let file_id = get_file_id(&file)?;
+                    Ok((file, file_id))
+                },
+                attempts,
+                Some(wait),
+            )?
         };
-        let file_id = get_file_id(&file)?;
         // Create a BufReader and skip to the proper line number while
         // keeping track of byte-position
         let mut reader = BufReader::new(file);
