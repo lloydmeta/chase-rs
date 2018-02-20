@@ -1,4 +1,4 @@
-//! Holds logic for tailing a file asynchronously using standard
+//! Holds logic for following a file asynchronously using standard
 //! channels from the standard lib.
 
 use data::*;

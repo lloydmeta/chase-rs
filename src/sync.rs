@@ -1,4 +1,4 @@
-//! Holds a synchronous implementation of file tailing.
+//! Holds a synchronous implementation of file following.
 
 use data::*;
 use control::*;
@@ -8,6 +8,7 @@ use std::io::{self, BufReader, SeekFrom};
 use std::io::prelude::*;
 use std::fs::File;
 use std::thread::sleep;
+use std::time::Duration;
 
 #[cfg(unix)]
 use std::os::unix::fs::MetadataExt;
@@ -62,7 +63,11 @@ impl Chaser {
     where
         F: FnMut(&str, Line, Pos) -> Result<Control, ChaseError>,
     {
-        let file = File::open(&self.path)?;
+        let file = {
+            let attempts = self.initial_no_file_attempts;
+            let wait = self.initial_no_file_wait;
+            try_until(|| File::open(&self.path), attempts, Some(wait))?
+        };
         let file_id = get_file_id(&file)?;
         // Create a BufReader and skip to the proper line number while
         // keeping track of byte-position
@@ -122,42 +127,28 @@ where
         if grabbing_remainder {
             break 'reading;
         } else {
-            let mut rotation_check_attempts: usize = 1;
-            'rotation_check: loop {
-                match check_rotation_status(running) {
-                    Ok(RotationStatus::Rotated {
-                        file: new_file,
-                        file_id: new_file_id,
-                    }) => {
-                        // Read the rest of the same file
-                        chase(running, f, true)?;
-                        // Restart reading loop, but read from the top
-                        running.line = Line(0);
-                        running.pos = Pos(0);
-                        running.file_id = new_file_id;
-                        running.reader = BufReader::new(new_file);
-                        continue 'reading;
-                    }
-                    Ok(RotationStatus::NotRotated) => {
-                        sleep(running.chaser.not_rotated_wait);
-                        continue 'reading;
-                    }
-                    Err(e) => {
-                        if running
-                            .chaser
-                            .rotation_check_attempts
-                            .map(|max_attempts| rotation_check_attempts < max_attempts)
-                            .unwrap_or(true)
-                        {
-                            if running.chaser.rotation_check_attempts.is_some() {
-                                rotation_check_attempts += 1;
-                            }
-                            sleep(running.chaser.rotation_check_wait);
-                            continue 'rotation_check;
-                        } else {
-                            return Err(e.into());
-                        }
-                    }
+            let rotation_status = {
+                let attempts = running.chaser.rotation_check_attempts;
+                let wait = running.chaser.rotation_check_wait;
+                try_until(|| check_rotation_status(running), attempts, Some(wait))?
+            };
+            match rotation_status {
+                RotationStatus::Rotated {
+                    file: new_file,
+                    file_id: new_file_id,
+                } => {
+                    // Read the rest of the same file
+                    chase(running, f, true)?;
+                    // Restart reading loop, but read from the top
+                    running.line = Line(0);
+                    running.pos = Pos(0);
+                    running.file_id = new_file_id;
+                    running.reader = BufReader::new(new_file);
+                    continue 'reading;
+                }
+                RotationStatus::NotRotated => {
+                    sleep(running.chaser.not_rotated_wait);
+                    continue 'reading;
                 }
             }
         }
@@ -175,6 +166,32 @@ fn check_rotation_status(running: &mut Chasing) -> Result<RotationStatus, io::Er
     }
 }
 
+// Will go at least once, max attempts set to None means try until successful
+fn try_until<R, E, F>(
+    mut f: F,
+    max_attempts: Option<usize>,
+    delay: Option<Duration>,
+) -> Result<R, E>
+where
+    F: FnMut() -> Result<R, E>,
+{
+    let mut tries = 0;
+    loop {
+        let current_try = f();
+        if max_attempts.is_some() {
+            tries += 1;
+        }
+        if current_try.is_err() && max_attempts.map(|until| tries < until).unwrap_or(true) {
+            if let Some(duration) = delay {
+                sleep(duration);
+            }
+            continue;
+        } else {
+            return current_try;
+        }
+    }
+}
+
 #[cfg(unix)]
 fn get_file_id(file: &File) -> Result<FileId, io::Error> {
     let meta = file.metadata()?;
@@ -188,12 +205,46 @@ enum RotationStatus {
 
 #[cfg(test)]
 mod tests {
+
+    use sync::try_until;
     use data::*;
     use control::*;
     use tempdir::*;
     use std::io::Write;
 
     use std::fs::OpenOptions;
+
+    #[test]
+    fn try_until_test() {
+        let result_0: Result<i32, ()> = try_until(|| Ok(1), None, None);
+        assert_eq!(result_0, Ok(1));
+        let result_1: Result<i32, ()> = try_until(|| Ok(1), Some(1), None);
+        assert_eq!(result_1, Ok(1));
+        let mut tries = 0;
+        let result_2: Result<i32, ()> = try_until(
+            || {
+                tries += 1;
+                Err(())
+            },
+            Some(1),
+            None,
+        );
+        assert_eq!(tries, 1);
+        assert_eq!(result_2, Err(()));
+        let result_3: Result<i32, ()> = try_until(
+            || {
+                tries += 1;
+                if tries < 1000 {
+                    Err(())
+                } else {
+                    Ok(1)
+                }
+            },
+            Some(999),
+            None,
+        );
+        assert_eq!(result_3, Ok(1));
+    }
 
     #[test]
     fn run_channel_test() {

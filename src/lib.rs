@@ -1,5 +1,5 @@
 #![doc(html_playground_url = "https://play.rust-lang.org/")]
-//! Chase: File tailing
+//! Chase: File following
 //!
 //! Chase a file through thick and thin:
 //!

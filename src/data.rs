@@ -1,4 +1,4 @@
-//! Holds various data structures used for chasing files
+//! Holds various data structures used for following files
 
 use std::io::BufReader;
 use std::fs::File;
@@ -21,12 +21,14 @@ pub struct Pos(pub u64);
 #[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub(crate) struct FileId(pub(crate) u64);
 
-/// Your entry point for chasing a file.
+/// Your entry point for following a file.
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub struct Chaser {
     pub(crate) line: Line,
     pub(crate) path: PathBuf,
+    pub(crate) initial_no_file_wait: Duration,
+    pub(crate) initial_no_file_attempts: Option<usize>,
     pub(crate) rotation_check_wait: Duration,
     pub(crate) rotation_check_attempts: Option<usize>,
     pub(crate) not_rotated_wait: Duration,
@@ -51,6 +53,8 @@ impl Chaser {
         Chaser {
             line: Line(0),
             path: path.into(),
+            initial_no_file_attempts: None,
+            initial_no_file_wait: Duration::from_millis(DEFAULT_ROTATION_CHECK_WAIT_MILLIS),
             rotation_check_attempts: None,
             rotation_check_wait: Duration::from_millis(DEFAULT_ROTATION_CHECK_WAIT_MILLIS),
             not_rotated_wait: Duration::from_millis(DEFAULT_NOT_ROTATED_WAIT_MILLIS),
@@ -76,15 +80,23 @@ impl Chaser {
         self.line = line;
     }
 
-    pub fn get_rotation_check_wait(&self) -> &Duration {
-        &self.rotation_check_wait
+    pub fn get_initial_no_file_wait(&self) -> &Duration {
+        &self.initial_no_file_wait
+    }
+
+    pub fn set_initial_no_file_wait(&mut self, duration: Duration) -> () {
+        self.initial_no_file_wait = duration;
+    }
+
+    pub fn get_rotation_check_wait(&self) -> Duration {
+        self.rotation_check_wait
     }
 
     pub fn set_rotation_check_wait(&mut self, duration: Duration) -> () {
         self.rotation_check_wait = duration;
     }
-    pub fn get_not_rotated_wait(&self) -> &Duration {
-        &self.not_rotated_wait
+    pub fn get_not_rotated_wait(&self) -> Duration {
+        self.not_rotated_wait
     }
 
     pub fn set_not_rotated_wait(&mut self, duration: Duration) -> () {
