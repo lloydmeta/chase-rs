@@ -4,7 +4,7 @@ version = "0.1.6"
 authors = ["lloydmeta <lloydmeta@gmail.com>"]
 license = "MIT"
 description = """
-Async + sync file-tailing for people who care about line numbers.
+Async + sync file-following for people who care about file rotatons and line numbers.
 """
 documentation = "https://docs.rs/chase"
 repository = "https://github.com/lloydmeta/chase-rs"

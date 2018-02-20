@@ -1,6 +1,6 @@
 # Chase [![Build Status](https://travis-ci.org/lloydmeta/chase-rs.svg?branch=master)](https://travis-ci.org/lloydmeta/chase-rs) [![Crates.io](https://img.shields.io/crates/v/chase.svg)](https://crates.io/crates/chase) [![Chase](https://docs.rs/chase/badge.svg)](https://docs.rs/chase)
 
-An implementation of async and sync file-tailing in Rust for people who care about line numbers.
+An implementation of async and sync file-following in Rust for people who care about line numbers.
 
 ### Goals
 

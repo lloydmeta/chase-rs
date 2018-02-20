@@ -1,4 +1,4 @@
-//! Holds an implementation of file tailing as a Futures Stream, with back-pressure
+//! Holds an implementation of file following as a Futures Stream, with back-pressure
 //! taken into consideration.
 
 use data::*;
