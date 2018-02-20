@@ -149,7 +149,9 @@ where
                             .map(|max_attempts| rotation_check_attempts < max_attempts)
                             .unwrap_or(true)
                         {
-                            rotation_check_attempts += 1;
+                            if running.chaser.rotation_check_attempts.is_some() {
+                                rotation_check_attempts += 1;
+                            }
                             sleep(running.chaser.rotation_check_wait);
                             continue 'rotation_check;
                         } else {

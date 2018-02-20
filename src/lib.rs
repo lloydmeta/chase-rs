@@ -3,11 +3,13 @@
 //!
 //! Chase a file through thick and thin:
 //!
-//!   * Get back line numbers with every line
-//!   * Configurable
+//!   * Provide line numbers with each line yielded
 //!   * Ability to exit the watch loop programmatically
-//!   * File rotations
-//!   * Sync and async modes (incl. support for Future Streams)
+//!   * Deals with file rotations automatically
+//!   * Cross-platform async
+//!   * Configurable (which line to start on, delays and retries)
+//!   * Easy to use synchronously
+//!   * Async modes (incl. support for Future Streams)
 //!
 //! # Examples
 //!
