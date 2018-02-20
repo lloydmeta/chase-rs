@@ -166,7 +166,7 @@ fn check_rotation_status(running: &mut Chasing) -> Result<RotationStatus, io::Er
     }
 }
 
-// Will go at least once
+// Will go at least once, max attempts set to None means try until successful
 fn try_until<R, E, F>(
     mut f: F,
     max_attempts: Option<usize>,
@@ -216,6 +216,8 @@ mod tests {
 
     #[test]
     fn try_test() {
+        let result_0: Result<i32, ()> = try_until(|| Ok(1), None, None);
+        assert_eq!(result_0, Ok(1));
         let result_1: Result<i32, ()> = try_until(|| Ok(1), Some(1), None);
         assert_eq!(result_1, Ok(1));
         let mut tries = 0;
