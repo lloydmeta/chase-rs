@@ -7,15 +7,16 @@ use std::sync::mpsc as channel_mpsc;
 #[cfg(feature = "stream")]
 use futures::sync::mpsc as stream_mpsc;
 
-use std::fmt;
-use std::error::Error;
 use async::SendData;
+use std::error::Error;
+use std::fmt;
 
 #[derive(Debug)]
 pub enum ChaseError {
     IoError(io::Error),
     ChannelSendError(channel_mpsc::SendError<SendData>),
-    #[cfg(feature = "stream")] StreamSendError(stream_mpsc::SendError<SendData>),
+    #[cfg(feature = "stream")]
+    StreamSendError(stream_mpsc::SendError<SendData>),
     Custom(Box<Error + Send + Sync>),
 }
 
@@ -44,14 +45,14 @@ impl Error for ChaseError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         use self::ChaseError::*;
         match self {
             &IoError(ref e) => Some(e),
             &ChannelSendError(ref e) => Some(e),
             #[cfg(feature = "stream")]
             &StreamSendError(ref e) => Some(e),
-            &Custom(ref e) => e.cause(),
+            &Custom(ref e) => e.source(),
         }
     }
 }
