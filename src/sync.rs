@@ -1,12 +1,13 @@
 //! Holds a synchronous implementation of file following.
 
-use data::*;
 use control::*;
+use data::*;
 use errors::ChaseError;
 
-use std::io::{self, BufReader, SeekFrom};
-use std::io::prelude::*;
 use std::fs::File;
+use std::io::prelude::*;
+use std::io::{self, BufReader, SeekFrom};
+use std::str::FromStr;
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -83,7 +84,17 @@ impl Chaser {
         let mut current_pos = Pos(0);
         let mut buffer = String::new();
         'skip_to_line: while current_line < self.line {
-            let read_bytes = reader.read_line(&mut buffer)? as u64;
+            let x = reader.read_line(&mut buffer);
+            dbg!(&x);
+            let read_bytes = match x {
+                Ok(read_bytes) => read_bytes as u64,
+                Err(_) => {
+                    // might happen that line contain non-utf8 byte sequence and then
+                    // read_line fails with error, we need to skip such line
+                    break 'skip_to_line;
+                }
+            };
+
             if read_bytes > 0 {
                 current_pos.0 += read_bytes;
                 current_line.0 += 1;
@@ -112,10 +123,41 @@ where
 {
     'reading: loop {
         'read_to_eof: loop {
-            let bytes_read = running.reader.read_line(&mut running.buffer)?;
+            let mut buf: Vec<u8> = vec![];
+            let x = running.reader.read_until(0xA, &mut buf);
+
+            let bytes_read = match x {
+                Ok(bytes_read) => bytes_read,
+                Err(_) => {
+                    // might happen that line contain non-utf8 byte sequence and then
+                    // read_line fails with error, we need to skip such line
+                    break 'read_to_eof;
+                }
+            };
+
+            let x = std::str::from_utf8(&mut buf);
+            match x {
+                Ok(str) => running.buffer = String::from_str(str).unwrap(),
+                Err(_) => {
+                    // might happen that line contain non-utf8 byte sequence and then
+                    // read_line fails with error, we need to skip such line
+                    break 'read_to_eof;
+                }
+            }
+
+            // let x = running.reader.read_line(&mut running.buffer);
+            // let bytes_read = running.reader.read_line(&mut running.buffer)?;
+            // let bytes_read = match x {
+            //     Ok(bytes_read) => bytes_read,
+            //     Err(_) => {
+            //         // might happen that line contain non-utf8 byte sequence and then
+            //         // read_line fails with error, we need to skip such line
+            //         break 'read_to_eof;
+            //     }
+            // };
             if bytes_read > 0 {
                 let control = f(
-                    running.buffer.trim_right_matches('\n'),
+                    running.buffer.trim_end_matches('\n'),
                     running.line,
                     running.pos,
                 )?;
@@ -213,11 +255,11 @@ enum RotationStatus {
 #[cfg(test)]
 mod tests {
 
-    use sync::try_until;
-    use data::*;
     use control::*;
-    use tempdir::*;
+    use data::*;
     use std::io::Write;
+    use sync::try_until;
+    use tempdir::*;
 
     use std::fs::OpenOptions;
 
